@@ -1,0 +1,16 @@
+# Files and directories to ignore by prettier
+node_modules/
+
+dist/
+
+*.log
+
+
+.env*
+!.env*.example
+
+README.md
+
+.DS_Store
+
+.vscode/
