@@ -3,42 +3,38 @@ const httpStatus = require('http-status');
 const ApiError = require('../utils/ApiError');
 const { roleRights } = require('../config/roles');
 
-const verifyCallback =
-  (req, resolve, reject, requiredRights) => async (err, user, info) => {
-    if (err || info || !user) {
-      return reject(
-        new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate')
-      );
+const verifyUser = (user, requiredRights, req) => {
+  if (!user) throw new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate');
+
+  req.user = user;
+
+  if (requiredRights.length) {
+    const userRights = roleRights.get(user.role) || [];
+    const hasRequiredRights = requiredRights.every((right) =>
+      userRights.includes(right)
+    );
+
+    if (!hasRequiredRights && req.params.userId !== String(user._id)) {
+      throw new ApiError(httpStatus.FORBIDDEN, 'Forbidden');
     }
-    req.user = user;
-
-    if (requiredRights.length) {
-      const userRights = roleRights.get(user.role);
-      const hasRequiredRights = requiredRights.every((requiredRight) =>
-        userRights.includes(requiredRight)
-      );
-
-      // Ensure `_id` comparison works correctly
-      if (!hasRequiredRights && req.params.userId !== String(user._id)) {
-        return reject(new ApiError(httpStatus.FORBIDDEN, 'Forbidden'));
-      }
-    }
-
-    resolve();
-  };
+  }
+};
 
 const auth =
   (...requiredRights) =>
   async (req, res, next) => {
-    return new Promise((resolve, reject) => {
-      passport.authenticate(
-        'jwt',
-        { session: false },
-        verifyCallback(req, resolve, reject, requiredRights)
-      )(req, res, next);
-    })
-      .then(() => next())
-      .catch((err) => next(err));
+    passport.authenticate('jwt', { session: false }, (err, user, info) => {
+      try {
+        if (err || info || !user) {
+          throw new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate');
+        }
+
+        verifyUser(user, requiredRights, req);
+        next();
+      } catch (err) {
+        next(err);
+      }
+    })(req, res, next);
   };
 
 module.exports = auth;
