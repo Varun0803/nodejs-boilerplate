@@ -1,13 +1,13 @@
 const authMessage = {
   // General Authentication Messages
-  UNAUTHORIZED: 'Unauthorized: Please authenticate',
+  UNAUTHORIZED: 'Unauthorized',
   SESSION_EXPIRED: 'Session has expired. Please log in again',
-  FORBIDDEN: 'Forbidden: You do not have permission to access this resource',
-  INVALID_TOKEN: 'Invalid Token',
+  FORBIDDEN:
+    'Access denied: You do not have permission to access this resource',
 
   // User and Admin Management
   USER_NOT_ACTIVE: 'User is not active',
-  NOT_FOUND: 'User not found',
+  USER_NOT_FOUND: 'User not found',
   USER_IS_DISABLED: 'User is disabled',
   EMAIL_ALREADY_REGISTERED: 'Email is already registered',
   PHONE_NUMBER_ALREADY_REGISTERED: 'Phone number is already registered',
@@ -44,7 +44,6 @@ const authMessage = {
   PASSWORD_CHANGED_SUCCESSFULLY: 'Password changed successfully',
   PASSWORD_RESET_SUCCESSFULLY: 'Password reset successfully',
   PASSWORD_RESET_SENT_SUCCESSFULLY: 'Password reset email sent successfully',
-  USER_FOUND: 'User found',
 };
 
 const genericMessage = {

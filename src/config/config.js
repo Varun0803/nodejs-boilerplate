@@ -13,16 +13,16 @@ const envVarsSchema = Joi.object()
     MONGODB_URL: Joi.string().required().description('Mongo DB url'),
     JWT_SECRET: Joi.string().required().description('JWT secret key'),
     JWT_ACCESS_EXPIRATION_MINUTES: Joi.number()
-      .default(30)
+      .default(15)
       .description('minutes after which access tokens expire'),
     JWT_REFRESH_EXPIRATION_DAYS: Joi.number()
-      .default(30)
+      .default(7)
       .description('days after which refresh tokens expire'),
     JWT_RESET_PASSWORD_EXPIRATION_MINUTES: Joi.number()
-      .default(10)
+      .default(120)
       .description('minutes after which reset password token expires'),
     JWT_VERIFY_EMAIL_EXPIRATION_MINUTES: Joi.number()
-      .default(10)
+      .default(120)
       .description('minutes after which verify email token expires'),
     SMTP_HOST: Joi.string().description('server that will send the emails'),
     SMTP_PORT: Joi.number().description('port to connect to the email server'),
@@ -32,8 +32,12 @@ const envVarsSchema = Joi.object()
       'the from field in the emails sent by the app'
     ),
     ALLOWED_ORIGINS: Joi.string().description('allowed origins for CORS'),
-    ENABLE_LOGGER: Joi.boolean().default(false),
-    ALLOWED_REQUEST_TYPES: Joi.string().default('GET,POST,PUT,DELETE'),
+    ENABLE_AUDIT_LOGGER: Joi.boolean().default(false),
+    ENABLE_AUDIT_LOGGER_ROTATION: Joi.boolean().default(false),
+    ALLOWED_REQUEST_TYPES_FOR_LOGGING: Joi.string().default(
+      'GET,POST,PUT,DELETE'
+    ),
+    AUDIT_LOG_ROTATION_DAYS: Joi.number().default(365),
     RATE_LIMIT_MAX_REQUESTS: Joi.number().default(100),
     RATE_LIMIT_TIME: Joi.number().default(60),
     ENABLE_RATE_LIMIT: Joi.boolean().default(false),
@@ -68,11 +72,12 @@ module.exports = {
       envVars.JWT_RESET_PASSWORD_EXPIRATION_MINUTES,
     verifyEmailExpirationMinutes: envVars.JWT_VERIFY_EMAIL_EXPIRATION_MINUTES,
   },
-  logger: {
-    enable: envVars.ENABLE_LOGGER,
-    allowedRequestTypes: envVars.ALLOWED_REQUEST_TYPES.split(',').map((o) =>
-      o.trim()
-    ),
+  auditLogger: {
+    enable: envVars.ENABLE_AUDIT_LOGGER,
+    allowedRequestTypesForLogging:
+      envVars.ALLOWED_REQUEST_TYPES_FOR_LOGGING.split(',').map((o) => o.trim()),
+    auditLogRotationDays: envVars.AUDIT_LOG_ROTATION_DAYS,
+    enableRotation: envVars.ENABLE_AUDIT_LOGGER_ROTATION,
   },
   rateLimiter: {
     maxRequests: envVars.RATE_LIMIT_MAX_REQUESTS,

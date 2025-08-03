@@ -1,10 +1,12 @@
 const passport = require('passport');
-const httpStatus = require('http-status');
+const { status: httpStatus } = require('http-status');
 const ApiError = require('../utils/ApiError');
 const { roleRights } = require('../config/roles');
+const { authMessage } = require('../config/httpMessages');
 
 const verifyUser = (user, requiredRights, req) => {
-  if (!user) throw new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate');
+  if (!user)
+    throw new ApiError(httpStatus.UNAUTHORIZED, authMessage.UNAUTHORIZED);
 
   req.user = user;
 
@@ -15,7 +17,7 @@ const verifyUser = (user, requiredRights, req) => {
     );
 
     if (!hasRequiredRights && req.params.userId !== String(user._id)) {
-      throw new ApiError(httpStatus.FORBIDDEN, 'Forbidden');
+      throw new ApiError(httpStatus.FORBIDDEN, authMessage.FORBIDDEN);
     }
   }
 };
@@ -26,7 +28,7 @@ const auth =
     passport.authenticate('jwt', { session: false }, (err, user, info) => {
       try {
         if (err || info || !user) {
-          throw new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate');
+          throw new ApiError(httpStatus.UNAUTHORIZED, authMessage.UNAUTHORIZED);
         }
 
         verifyUser(user, requiredRights, req);

@@ -78,11 +78,11 @@ const redactSensitiveInfo = (body) => {
   return redactedBody;
 };
 
-const auditLogger = async (allowedRequestTypes, req, res, next) => {
+const auditLogger = async (allowedRequestTypesForLogging, req, res, next) => {
   // Check if the current request's method is allowed to be logged
   if (
-    !allowedRequestTypes?.includes('all') &&
-    !allowedRequestTypes?.includes(`${req.method.toLowerCase()}`)
+    !allowedRequestTypesForLogging?.includes('all') &&
+    !allowedRequestTypesForLogging?.includes(`${req.method.toLowerCase()}`)
   ) {
     return next();
   }

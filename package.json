@@ -2,7 +2,6 @@
   "name": "setup-nodejs-app",
   "version": "1.0.0",
   "description": "Create a Node.js app for building production-ready RESTful APIs using Express, by running one command",
-  "bin": "bin/createNodejsApp.js",
   "main": "server.js",
   "repository": "",
   "author": "",

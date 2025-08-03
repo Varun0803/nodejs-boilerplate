@@ -1,11 +1,12 @@
 const jwt = require('jsonwebtoken');
 const { addMinutes, addDays, getUnixTime } = require('date-fns');
-const httpStatus = require('http-status');
+const { status: httpStatus } = require('http-status');
 const config = require('../config/config');
 const userService = require('./user.service');
 const { Token } = require('../models');
 const ApiError = require('../utils/ApiError');
-const { tokenTypes } = require('../config/tokens');
+const { tokenTypes } = require('../config/constants');
+const { authMessage } = require('../config/httpMessages');
 
 /**
  * Generate token
@@ -31,16 +32,14 @@ const generateToken = (userId, expires, type, secret = config.jwt.secret) => {
  * @param {ObjectId} userId
  * @param {Date} expires
  * @param {string} type
- * @param {boolean} [blacklisted]
  * @returns {Promise<Token>}
  */
-const saveToken = async (token, userId, expires, type, blacklisted = false) => {
+const saveToken = async (token, userId, expires, type) => {
   const tokenDoc = await Token.create({
     token,
     user: userId,
     expires,
     type,
-    blacklisted,
   });
   return tokenDoc;
 };
@@ -52,15 +51,19 @@ const saveToken = async (token, userId, expires, type, blacklisted = false) => {
  * @returns {Promise<Token>}
  */
 const verifyToken = async (token, type) => {
-  const payload = jwt.verify(token, config.jwt.secret);
+  let payload;
+  try {
+    payload = jwt.verify(token, config.jwt.secret);
+  } catch (err) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, authMessage.UNAUTHORIZED);
+  }
   const tokenDoc = await Token.findOne({
     token,
     type,
     user: payload.sub,
-    blacklisted: false,
   });
   if (!tokenDoc) {
-    throw new Error('Token not found');
+    throw new ApiError(httpStatus.UNAUTHORIZED, authMessage.UNAUTHORIZED);
   }
   return tokenDoc;
 };
@@ -110,14 +113,10 @@ const generateAuthTokens = async (user) => {
 
 /**
  * Generate reset password token
- * @param {string} email
+ * @param {User} user
  * @returns {Promise<string>}
  */
-const generateResetPasswordToken = async (email) => {
-  const user = await userService.getUserByEmail(email);
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'No users found with this email');
-  }
+const generateResetPasswordToken = async (user) => {
   const expires = addMinutes(
     new Date(),
     config.jwt.resetPasswordExpirationMinutes

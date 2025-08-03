@@ -4,7 +4,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const compression = require('compression');
 const cors = require('cors');
 const passport = require('passport');
-const httpStatus = require('http-status');
+const { status: httpStatus } = require('http-status');
 const config = require('./config/config');
 const morgan = require('./config/morgan');
 const { jwtStrategy } = require('./config/passport');
@@ -14,6 +14,7 @@ const { errorConverter, errorHandler } = require('./middlewares/error');
 const ApiError = require('./utils/ApiError');
 const cookieParser = require('cookie-parser');
 const apiLogger = require('./middlewares/auditLogger');
+const { genericMessage } = require('./config/httpMessages');
 
 const app = express();
 
@@ -54,9 +55,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
-if (config.logger.enable) {
+if (config.auditLogger.enable) {
   app.use((req, res, next) =>
-    apiLogger(config.logger.allowedRequestTypes, req, res, next)
+    apiLogger(config.auditLogger.allowedRequestTypesForLogging, req, res, next)
   );
 }
 
@@ -76,7 +77,7 @@ app.use('/v1', routes);
 
 // Send back a 404 error for any unknown API request
 app.use((req, res, next) => {
-  next(new ApiError(httpStatus.NOT_FOUND, 'Not found'));
+  next(new ApiError(httpStatus.NOT_FOUND, genericMessage.NOT_FOUND));
 });
 
 // Convert error to ApiError, if needed
